@@ -73,6 +73,33 @@
             gap: 15px;
         }
 
+        .layout-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .layout-btn {
+            background: linear-gradient(to bottom, #4a5568, #2d3748);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .layout-btn.active {
+            background: linear-gradient(to bottom, #fdbb2d, #b21f1f);
+        }
+
+        .layout-btn:hover {
+            background: linear-gradient(to bottom, #5a6578, #3d4758);
+            transform: translateY(-2px);
+        }
+
         button {
             background: linear-gradient(to bottom, #4a5568, #2d3748);
             color: white;
@@ -188,6 +215,15 @@
             border-radius: 6px;
         }
 
+        .current-layout {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(253, 187, 45, 0.2);
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+        }
+
         footer {
             margin-top: 30px;
             text-align: center;
@@ -233,6 +269,12 @@
                 <span id="volume-value">70%</span>
             </div>
 
+            <div class="layout-controls">
+                <span>Раскладка:</span>
+                <button class="layout-btn active" data-layout="en">EN</button>
+                <button class="layout-btn" data-layout="ru">RU</button>
+            </div>
+
             <div class="keyboard-controls">
                 <button id="show-keys">Показать клавиши</button>
                 <button id="record-btn">Записать</button>
@@ -247,6 +289,10 @@
         <div class="instructions">
             <h2>Как играть</h2>
             <p>Используйте клавиши на клавиатуре или кликайте по клавишам пианино мышью.</p>
+
+            <div class="current-layout" id="current-layout">
+                Текущая раскладка: Английская (EN)
+            </div>
 
             <div class="key-list" id="key-mappings">
                 <!-- Сопоставления клавиш будут добавлены через JavaScript -->
@@ -263,71 +309,195 @@
             // Создание клавиш пианино
             const piano = document.getElementById('piano');
             const keyMappings = document.getElementById('key-mappings');
+            const currentLayoutElement = document.getElementById('current-layout');
 
-            // Ноты и соответствующие клавиши на клавиатуре
+            // Ноты и соответствующие клавиши на клавиатуре для разных раскладок
             const notes = [
-                { note: 'C', key: 'A', type: 'white', frequency: 261.63 },
-                { note: 'C#', key: 'W','Ц', type: 'black', frequency: 277.18 },
-                { note: 'D', key: 'S', type: 'white', frequency: 293.66 },
-                { note: 'D#', key: 'E', type: 'black', frequency: 311.13 },
-                { note: 'E', key: 'D', type: 'white', frequency: 329.63 },
-                { note: 'F', key: 'F', type: 'white', frequency: 349.23 },
-                { note: 'F#', key: 'T', type: 'black', frequency: 369.99 },
-                { note: 'G', key: 'G', type: 'white', frequency: 392.00 },
-                { note: 'G#', key: 'Y', type: 'black', frequency: 415.30 },
-                { note: 'A', key: 'H', type: 'white', frequency: 440.00 },
-                { note: 'A#', key: 'U', type: 'black', frequency: 466.16 },
-                { note: 'B', key: 'J', type: 'white', frequency: 493.88 },
-                { note: 'C2', key: 'K', type: 'white', frequency: 523.25 }
+                {
+                    note: 'C',
+                    keys: { en: 'A', ru: 'Ф' },
+                    type: 'white',
+                    frequency: 261.63
+                },
+                {
+                    note: 'C#',
+                    keys: { en: 'W', ru: 'Ц' },
+                    type: 'black',
+                    frequency: 277.18
+                },
+                {
+                    note: 'D',
+                    keys: { en: 'S', ru: 'Ы' },
+                    type: 'white',
+                    frequency: 293.66
+                },
+                {
+                    note: 'D#',
+                    keys: { en: 'E', ru: 'У' },
+                    type: 'black',
+                    frequency: 311.13
+                },
+                {
+                    note: 'E',
+                    keys: { en: 'D', ru: 'В' },
+                    type: 'white',
+                    frequency: 329.63
+                },
+                {
+                    note: 'F',
+                    keys: { en: 'F', ru: 'А' },
+                    type: 'white',
+                    frequency: 349.23
+                },
+                {
+                    note: 'F#',
+                    keys: { en: 'T', ru: 'Е' },
+                    type: 'black',
+                    frequency: 369.99
+                },
+                {
+                    note: 'G',
+                    keys: { en: 'G', ru: 'П' },
+                    type: 'white',
+                    frequency: 392.00
+                },
+                {
+                    note: 'G#',
+                    keys: { en: 'Y', ru: 'Н' },
+                    type: 'black',
+                    frequency: 415.30
+                },
+                {
+                    note: 'A',
+                    keys: { en: 'H', ru: 'Р' },
+                    type: 'white',
+                    frequency: 440.00
+                },
+                {
+                    note: 'A#',
+                    keys: { en: 'U', ru: 'Г' },
+                    type: 'black',
+                    frequency: 466.16
+                },
+                {
+                    note: 'B',
+                    keys: { en: 'J', ru: 'О' },
+                    type: 'white',
+                    frequency: 493.88
+                },
+                {
+                    note: 'C2',
+                    keys: { en: 'K', ru: 'Л' },
+                    type: 'white',
+                    frequency: 523.25
+                }
             ];
 
-            // Создание клавиш пианино
-            let blackKeyCount = 0;
-            notes.forEach((note, index) => {
-                if (note.type === 'white') {
-                    const whiteKey = document.createElement('div');
-                    whiteKey.className = 'white-key';
-                    whiteKey.dataset.note = note.note;
-                    whiteKey.dataset.frequency = note.frequency;
+            // Текущая раскладка
+            let currentLayout = 'en';
 
-                    const keyLabel = document.createElement('div');
-                    keyLabel.className = 'key-label';
-                    keyLabel.textContent = note.key;
-
-                    whiteKey.appendChild(keyLabel);
-                    piano.appendChild(whiteKey);
-
-                    // Добавление в список клавиш
-                    const keyItem = document.createElement('div');
-                    keyItem.className = 'key-item';
-                    keyItem.innerHTML = `<span>${note.note}</span><span>${note.key}</span>`;
-                    keyMappings.appendChild(keyItem);
-                } else {
-                    const blackKey = document.createElement('div');
-                    blackKey.className = 'black-key';
-                    blackKey.dataset.note = note.note;
-                    blackKey.dataset.frequency = note.frequency;
-
-                    // Позиционирование черных клавиш
-                    const position = (index - blackKeyCount) * 62 - 20;
-                    blackKey.style.left = `${position}px`;
-
-                    const keyLabel = document.createElement('div');
-                    keyLabel.className = 'key-label';
-                    keyLabel.textContent = note.key;
-
-                    blackKey.appendChild(keyLabel);
-                    piano.appendChild(blackKey);
-
-                    blackKeyCount++;
-
-                    // Добавление в список клавиш
-                    const keyItem = document.createElement('div');
-                    keyItem.className = 'key-item';
-                    keyItem.innerHTML = `<span>${note.note}</span><span>${note.key}</span>`;
-                    keyMappings.appendChild(keyItem);
+            // Карта соответствия физических клавиш для разных раскладок
+            const keyMap = {
+                // Английская раскладка
+                'en': {
+                    'KeyA': 'A', 'KeyW': 'W', 'KeyS': 'S', 'KeyE': 'E',
+                    'KeyD': 'D', 'KeyF': 'F', 'KeyT': 'T', 'KeyG': 'G',
+                    'KeyY': 'Y', 'KeyH': 'H', 'KeyU': 'U', 'KeyJ': 'J',
+                    'KeyK': 'K'
+                },
+                // Русская раскладка (те же физические клавиши, но другие символы)
+                'ru': {
+                    'KeyA': 'Ф', 'KeyW': 'Ц', 'KeyS': 'Ы', 'KeyE': 'У',
+                    'KeyD': 'В', 'KeyF': 'А', 'KeyT': 'Е', 'KeyG': 'П',
+                    'KeyY': 'Н', 'KeyH': 'Р', 'KeyU': 'Г', 'KeyJ': 'О',
+                    'KeyK': 'Л'
                 }
-            });
+            };
+
+            // Функция для получения текущей клавиши по физической позиции
+            function getCurrentKey(code) {
+                return keyMap[currentLayout][code] || null;
+            }
+
+            // Функция обновления отображения клавиш
+            function updateKeyLabels() {
+                const keyLabels = document.querySelectorAll('.key-label');
+                const keyItems = document.querySelectorAll('.key-item');
+
+                // Обновляем подписи на клавишах пианино
+                keyLabels.forEach((label, index) => {
+                    if (index < notes.length) {
+                        label.textContent = notes[index].keys[currentLayout];
+                    }
+                });
+
+                // Обновляем список сопоставлений
+                keyItems.forEach((item, index) => {
+                    if (index < notes.length) {
+                        item.innerHTML = `<span>${notes[index].note}</span><span>${notes[index].keys[currentLayout]}</span>`;
+                    }
+                });
+
+                // Обновляем информацию о текущей раскладке
+                const layoutName = currentLayout === 'en' ? 'Английская (EN)' : 'Русская (RU)';
+                currentLayoutElement.textContent = `Текущая раскладка: ${layoutName}`;
+            }
+
+            // Создание клавиш пианино
+            function createPianoKeys() {
+                piano.innerHTML = '';
+                keyMappings.innerHTML = '';
+
+                let blackKeyCount = 0;
+                notes.forEach((note, index) => {
+                    if (note.type === 'white') {
+                        const whiteKey = document.createElement('div');
+                        whiteKey.className = 'white-key';
+                        whiteKey.dataset.note = note.note;
+                        whiteKey.dataset.frequency = note.frequency;
+
+                        const keyLabel = document.createElement('div');
+                        keyLabel.className = 'key-label';
+                        keyLabel.textContent = note.keys[currentLayout];
+
+                        whiteKey.appendChild(keyLabel);
+                        piano.appendChild(whiteKey);
+
+                        // Добавление в список клавиш
+                        const keyItem = document.createElement('div');
+                        keyItem.className = 'key-item';
+                        keyItem.innerHTML = `<span>${note.note}</span><span>${note.keys[currentLayout]}</span>`;
+                        keyMappings.appendChild(keyItem);
+                    } else {
+                        const blackKey = document.createElement('div');
+                        blackKey.className = 'black-key';
+                        blackKey.dataset.note = note.note;
+                        blackKey.dataset.frequency = note.frequency;
+
+                        // Позиционирование черных клавиш
+                        const position = (index - blackKeyCount) * 62 - 20;
+                        blackKey.style.left = `${position}px`;
+
+                        const keyLabel = document.createElement('div');
+                        keyLabel.className = 'key-label';
+                        keyLabel.textContent = note.keys[currentLayout];
+
+                        blackKey.appendChild(keyLabel);
+                        piano.appendChild(blackKey);
+
+                        blackKeyCount++;
+
+                        // Добавление в список клавиш
+                        const keyItem = document.createElement('div');
+                        keyItem.className = 'key-item';
+                        keyItem.innerHTML = `<span>${note.note}</span><span>${note.keys[currentLayout]}</span>`;
+                        keyMappings.appendChild(keyItem);
+                    }
+                });
+            }
+
+            // Инициализация пианино
+            createPianoKeys();
 
             // Аудиоконтекст и осцилляторы
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -340,6 +510,7 @@
             const showKeysBtn = document.getElementById('show-keys');
             const recordBtn = document.getElementById('record-btn');
             const playBtn = document.getElementById('play-btn');
+            const layoutBtns = document.querySelectorAll('.layout-btn');
 
             // Переменные для записи
             let isRecording = false;
@@ -349,6 +520,23 @@
             // Обновление отображения громкости
             volumeSlider.addEventListener('input', function() {
                 volumeValue.textContent = `${this.value}%`;
+            });
+
+            // Переключение раскладки
+            layoutBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const layout = this.dataset.layout;
+                    if (layout !== currentLayout) {
+                        currentLayout = layout;
+
+                        // Обновляем активную кнопку
+                        layoutBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+
+                        // Обновляем отображение клавиш
+                        updateKeyLabels();
+                    }
+                });
             });
 
             // Показать/скрыть подписи клавиш
@@ -455,26 +643,30 @@
                 // Предотвращаем повторное срабатывание при зажатой клавише
                 if (e.repeat) return;
 
-                const key = e.key.toUpperCase();
-                const note = notes.find(n => n.key === key);
+                const currentKey = getCurrentKey(e.code);
+                if (currentKey) {
+                    const note = notes.find(n => n.keys[currentLayout] === currentKey);
 
-                if (note) {
-                    const pianoKey = document.querySelector(`[data-note="${note.note}"]`);
-                    if (pianoKey) {
-                        pianoKey.classList.add('active');
-                        playNote(note.frequency);
+                    if (note) {
+                        const pianoKey = document.querySelector(`[data-note="${note.note}"]`);
+                        if (pianoKey) {
+                            pianoKey.classList.add('active');
+                            playNote(note.frequency);
+                        }
                     }
                 }
             });
 
             document.addEventListener('keyup', function(e) {
-                const key = e.key.toUpperCase();
-                const note = notes.find(n => n.key === key);
+                const currentKey = getCurrentKey(e.code);
+                if (currentKey) {
+                    const note = notes.find(n => n.keys[currentLayout] === currentKey);
 
-                if (note) {
-                    const pianoKey = document.querySelector(`[data-note="${note.note}"]`);
-                    if (pianoKey) {
-                        pianoKey.classList.remove('active');
+                    if (note) {
+                        const pianoKey = document.querySelector(`[data-note="${note.note}"]`);
+                        if (pianoKey) {
+                            pianoKey.classList.remove('active');
+                        }
                     }
                 }
             });
@@ -485,6 +677,20 @@
                     audioContext.resume();
                 }
             }, { once: true });
+
+            // Определение текущей раскладки при загрузке
+            function detectInitialLayout() {
+                // Простая эвристика: если пользователь из России, предполагаем русскую раскладку
+                const language = navigator.language || navigator.userLanguage;
+                if (language.startsWith('ru')) {
+                    currentLayout = 'ru';
+                    document.querySelector('.layout-btn[data-layout="ru"]').classList.add('active');
+                    document.querySelector('.layout-btn[data-layout="en"]').classList.remove('active');
+                    updateKeyLabels();
+                }
+            }
+
+            detectInitialLayout();
         });
     </script>
 </body>
