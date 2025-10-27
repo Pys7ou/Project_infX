@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Виртуальное пианино</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-slider {
+            width: 150px;
+        }
+
+        .keyboard-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(to bottom, #4a5568, #2d3748);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom, #5a6578, #3d4758);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .piano {
+            display: flex;
+            position: relative;
+            height: 200px;
+            margin-bottom: 30px;
+            user-select: none;
+        }
+
+        .white-key {
+            width: 60px;
+            height: 100%;
+            background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
+            border: 1px solid #cbd5e0;
+            border-radius: 0 0 8px 8px;
+            margin-right: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+            color: #2d3748;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.1s;
+            z-index: 1;
+        }
+
+        .white-key.active {
+            background: linear-gradient(to bottom, #e2e8f0, #cbd5e0);
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .black-key {
+            position: absolute;
+            width: 40px;
+            height: 60%;
+            background: linear-gradient(to bottom, #2d3748, #1a202c);
+            border-radius: 0 0 6px 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            transition: all 0.1s;
+            z-index: 2;
+        }
+
+        .black-key.active {
+            background: linear-gradient(to bottom, #1a202c, #0d1117);
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .key-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .instructions {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .instructions h2 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .key-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .key-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .piano {
+                height: 150px;
+            }
+
+            .white-key {
+                width: 40px;
+            }
+
+            .black-key {
+                width: 28px;
+            }
+
+            .key-label {
+                font-size: 0.7rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎹 Виртуальное пианино</h1>
+        <p class="subtitle">Играйте на клавиатуре или кликайте по клавишам</p>
+    </header>
+
+    <div class="container">
+        <div class="controls">
+            <div class="volume-control">
+                <span>Громкость:</span>
+                <input type="range" min="0" max="100" value="70" class="volume-slider" id="volume">
+                <span id="volume-value">70%</span>
+            </div>
+
+            <div class="keyboard-controls">
+                <button id="show-keys">Показать клавиши</button>
+                <button id="record-btn">Записать</button>
+                <button id="play-btn" disabled>Воспроизвести</button>
+            </div>
+        </div>
+
+        <div class="piano" id="piano">
+            <!-- Клавиши будут добавлены через JavaScript -->
+        </div>
+
+        <div class="instructions">
+            <h2>Как играть</h2>
+            <p>Используйте клавиши на клавиатуре или кликайте по клавишам пианино мышью.</p>
+
+            <div class="key-list" id="key-mappings">
+                <!-- Сопоставления клавиш будут добавлены через JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Виртуальное пианино &copy; 2023 | Создано для деплоя на Render</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Создание клавиш пианино
+            const piano = document.getElementById('piano');
+            const keyMappings = document.getElementById('key-mappings');
+
+            // Ноты и соответствующие клавиши на клавиатуре
+            const notes = [
+                { note: 'C', key: 'A', type: 'white', frequency: 261.63 },
+                { note: 'C#', key: 'W', type: 'black', frequency: 277.18 },
+                { note: 'D', key: 'S', type: 'white', frequency: 293.66 },
+                { note: 'D#', key: 'E', type: 'black', frequency: 311.13 },
+                { note: 'E', key: 'D', type: 'white', frequency: 329.63 },
+                { note: 'F', key: 'F', type: 'white', frequency: 349.23 },
+                { note: 'F#', key: 'T', type: 'black', frequency: 369.99 },
+                { note: 'G', key: 'G', type: 'white', frequency: 392.00 },
+                { note: 'G#', key: 'Y', type: 'black', frequency: 415.30 },
+                { note: 'A', key: 'H', type: 'white', frequency: 440.00 },
+                { note: 'A#', key: 'U', type: 'black', frequency: 466.16 },
+                { note: 'B', key: 'J', type: 'white', frequency: 493.88 },
+                { note: 'C2', key: 'K', type: 'white', frequency: 523.25 }
+            ];
+
+            // Создание клавиш пианино
+            let blackKeyCount = 0;
+            notes.forEach((note, index) => {
+                if (note.type === 'white') {
+                    const whiteKey = document.createElement('div');
+                    whiteKey.className = 'white-key';
+                    whiteKey.dataset.note = note.note;
+                    whiteKey.dataset.frequency = note.frequency;
+
+                    const keyLabel = document.createElement('div');
+                    keyLabel.className = 'key-label';
+                    keyLabel.textContent = note.key;
+
+                    whiteKey.appendChild(keyLabel);
+                    piano.appendChild(whiteKey);
+
+                    // Добавление в список клавиш
+                    const keyItem = document.createElement('div');
+                    keyItem.className = 'key-item';
+                    keyItem.innerHTML = `<span>${note.note}</span><span>${note.key}</span>`;
+                    keyMappings.appendChild(keyItem);
+                } else {
+                    const blackKey = document.createElement('div');
+                    blackKey.className = 'black-key';
+                    blackKey.dataset.note = note.note;
+                    blackKey.dataset.frequency = note.frequency;
+
+                    // Позиционирование черных клавиш
+                    const position = (index - blackKeyCount) * 62 - 20;
+                    blackKey.style.left = `${position}px`;
+
+                    const keyLabel = document.createElement('div');
+                    keyLabel.className = 'key-label';
+                    keyLabel.textContent = note.key;
+
+                    blackKey.appendChild(keyLabel);
+                    piano.appendChild(blackKey);
+
+                    blackKeyCount++;
+
+                    // Добавление в список клавиш
+                    const keyItem = document.createElement('div');
+                    keyItem.className = 'key-item';
+                    keyItem.innerHTML = `<span>${note.note}</span><span>${note.key}</span>`;
+                    keyMappings.appendChild(keyItem);
+                }
+            });
+
+            // Аудиоконтекст и осцилляторы
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioContext = new AudioContext();
+            let activeOscillators = {};
+
+            // Элементы управления
+            const volumeSlider = document.getElementById('volume');
+            const volumeValue = document.getElementById('volume-value');
+            const showKeysBtn = document.getElementById('show-keys');
+            const recordBtn = document.getElementById('record-btn');
+            const playBtn = document.getElementById('play-btn');
+
+            // Переменные для записи
+            let isRecording = false;
+            let recordedNotes = [];
+            let startTime;
+
+            // Обновление отображения громкости
+            volumeSlider.addEventListener('input', function() {
+                volumeValue.textContent = `${this.value}%`;
+            });
+
+            // Показать/скрыть подписи клавиш
+            showKeysBtn.addEventListener('click', function() {
+                const keyLabels = document.querySelectorAll('.key-label');
+                const isVisible = keyLabels[0].style.display !== 'none';
+
+                keyLabels.forEach(label => {
+                    label.style.display = isVisible ? 'none' : 'block';
+                });
+
+                this.textContent = isVisible ? 'Показать клавиши' : 'Скрыть клавиши';
+            });
+
+            // Запись
+            recordBtn.addEventListener('click', function() {
+                if (!isRecording) {
+                    isRecording = true;
+                    recordedNotes = [];
+                    startTime = Date.now();
+                    this.textContent = 'Остановить запись';
+                    playBtn.disabled = true;
+                } else {
+                    isRecording = false;
+                    this.textContent = 'Записать';
+                    playBtn.disabled = false;
+                }
+            });
+
+            // Воспроизведение записи
+            playBtn.addEventListener('click', function() {
+                if (recordedNotes.length === 0) return;
+
+                recordedNotes.forEach(note => {
+                    setTimeout(() => {
+                        playNote(note.frequency);
+                    }, note.time);
+                });
+            });
+
+            // Функция воспроизведения ноты
+            function playNote(frequency) {
+                // Останавливаем предыдущий осциллятор для этой частоты, если он есть
+                if (activeOscillators[frequency]) {
+                    activeOscillators[frequency].stop();
+                }
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = 'sine';
+                oscillator.frequency.value = frequency;
+
+                // Установка громкости
+                const volume = volumeSlider.value / 100;
+                gainNode.gain.value = volume;
+
+                // Плавное затухание
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 1);
+
+                // Сохраняем осциллятор для возможности остановки
+                activeOscillators[frequency] = oscillator;
+
+                // Запись ноты, если включен режим записи
+                if (isRecording) {
+                    recordedNotes.push({
+                        frequency: frequency,
+                        time: Date.now() - startTime
+                    });
+                }
+            }
+
+            // Обработка кликов по клавишам
+            piano.addEventListener('mousedown', function(e) {
+                const key = e.target.closest('.white-key, .black-key');
+                if (key) {
+                    key.classList.add('active');
+                    const frequency = parseFloat(key.dataset.frequency);
+                    playNote(frequency);
+                }
+            });
+
+            piano.addEventListener('mouseup', function(e) {
+                const key = e.target.closest('.white-key, .black-key');
+                if (key) {
+                    key.classList.remove('active');
+                }
+            });
+
+            piano.addEventListener('mouseleave', function() {
+                document.querySelectorAll('.white-key.active, .black-key.active').forEach(key => {
+                    key.classList.remove('active');
+                });
+            });
+
+            // Обработка нажатий клавиш клавиатуры
+            document.addEventListener('keydown', function(e) {
+                // Предотвращаем повторное срабатывание при зажатой клавише
+                if (e.repeat) return;
+
+                const key = e.key.toUpperCase();
+                const note = notes.find(n => n.key === key);
+
+                if (note) {
+                    const pianoKey = document.querySelector(`[data-note="${note.note}"]`);
+                    if (pianoKey) {
+                        pianoKey.classList.add('active');
+                        playNote(note.frequency);
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', function(e) {
+                const key = e.key.toUpperCase();
+                const note = notes.find(n => n.key === key);
+
+                if (note) {
+                    const pianoKey = document.querySelector(`[data-note="${note.note}"]`);
+                    if (pianoKey) {
+                        pianoKey.classList.remove('active');
+                    }
+                }
+            });
+
+            // Активация аудиоконтекста при первом взаимодействии
+            document.addEventListener('click', function() {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+            }, { once: true });
+        });
+    </script>
+</body>
+</html>
