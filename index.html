@@ -11,6 +11,11 @@
             box-sizing: border-box;
         }
 
+        @font-face {
+            font-family: 'Gangster';
+            src: url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
@@ -20,6 +25,34 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            position: relative;
+        }
+
+        .cheat-balance {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+            display: none;
+            z-index: 1000;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px #00ff00;
+            }
+            to {
+                box-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00;
+            }
         }
 
         header {
@@ -252,10 +285,20 @@
                 flex-direction: column;
                 align-items: flex-start;
             }
+
+            .cheat-balance {
+                font-size: 1.2rem;
+                padding: 10px 15px;
+                top: 10px;
+                right: 10px;
+            }
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="cheat-balance" id="cheat-balance">$0</div>
+
     <header>
         <h1>🎹 Виртуальное пианино</h1>
         <p class="subtitle">Играйте на клавиатуре или кликайте по клавишам</p>
@@ -310,6 +353,7 @@
             const piano = document.getElementById('piano');
             const keyMappings = document.getElementById('key-mappings');
             const currentLayoutElement = document.getElementById('current-layout');
+            const cheatBalanceElement = document.getElementById('cheat-balance');
 
             // Ноты и соответствующие клавиши на клавиатуре для разных раскладок
             const notes = [
@@ -396,6 +440,13 @@
             // Текущая раскладка
             let currentLayout = 'en';
 
+            // Переменные для чит-кода
+            let cheatSequence = [];
+            const targetCheatEN = ['H', 'E', 'S', 'O', 'Y', 'A', 'M'];
+            const targetCheatRU = ['Р', 'У', 'Ы', 'Щ', 'Н', 'Ф', 'Ь'];
+            let cheatActivated = false;
+            let balance = 0;
+
             // Карта соответствия физических клавиш для разных раскладок
             const keyMap = {
                 // Английская раскладка
@@ -441,6 +492,79 @@
                 // Обновляем информацию о текущей раскладке
                 const layoutName = currentLayout === 'en' ? 'Английская (EN)' : 'Русская (RU)';
                 currentLayoutElement.textContent = `Текущая раскладка: ${layoutName}`;
+            }
+
+            // Функция для обработки чит-кода
+            function handleCheatCode(key) {
+                if (cheatActivated) {
+                    // Если чит уже активирован, просто добавляем деньги
+                    balance += 250000;
+                    updateBalanceDisplay();
+                    return;
+                }
+
+                // Добавляем нажатую клавишу в последовательность
+                cheatSequence.push(key);
+
+                // Проверяем соответствие целевой последовательности
+                const targetCheat = currentLayout === 'en' ? targetCheatEN : targetCheatRU;
+
+                // Если последовательность слишком длинная, обрезаем её
+                if (cheatSequence.length > targetCheat.length) {
+                    cheatSequence = cheatSequence.slice(-targetCheat.length);
+                }
+
+                // Проверяем совпадение
+                if (cheatSequence.join('') === targetCheat.join('')) {
+                    cheatActivated = true;
+                    balance = 250000;
+                    updateBalanceDisplay();
+                    showCheatMessage();
+                }
+            }
+
+            // Функция обновления отображения баланса
+            function updateBalanceDisplay() {
+                cheatBalanceElement.textContent = `$${balance.toLocaleString()}`;
+                cheatBalanceElement.style.display = 'block';
+            }
+
+            // Функция показа сообщения о активации чита
+            function showCheatMessage() {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 255, 0, 0.9);
+                    color: black;
+                    padding: 20px 40px;
+                    border-radius: 10px;
+                    font-family: 'Orbitron', monospace;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    z-index: 1001;
+                    text-align: center;
+                    animation: fadeOut 3s forwards;
+                `;
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeOut {
+                        0% { opacity: 1; }
+                        70% { opacity: 1; }
+                        100% { opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                message.textContent = 'Чит-код активирован! +$250,000';
+                document.body.appendChild(message);
+
+                setTimeout(() => {
+                    document.body.removeChild(message);
+                }, 3000);
             }
 
             // Создание клавиш пианино
@@ -535,6 +659,9 @@
 
                         // Обновляем отображение клавиш
                         updateKeyLabels();
+
+                        // Сбрасываем чит-последовательность при смене раскладки
+                        cheatSequence = [];
                     }
                 });
             });
@@ -622,6 +749,12 @@
                     key.classList.add('active');
                     const frequency = parseFloat(key.dataset.frequency);
                     playNote(frequency);
+
+                    // Обработка чит-кода при клике
+                    const keyLabel = key.querySelector('.key-label');
+                    if (keyLabel) {
+                        handleCheatCode(keyLabel.textContent);
+                    }
                 }
             });
 
@@ -652,6 +785,9 @@
                         if (pianoKey) {
                             pianoKey.classList.add('active');
                             playNote(note.frequency);
+
+                            // Обработка чит-кода
+                            handleCheatCode(currentKey);
                         }
                     }
                 }
